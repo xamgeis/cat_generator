@@ -15,6 +15,7 @@ import numpy as np
 import argparse
 from dataset import Dataset
 from scipy import misc
+from multiprocessing import Pool
 
 random.seed(42)
 np.random.seed(42)
@@ -28,19 +29,7 @@ WRITE_AUG = True
 WRITE_UNAUG_TO = "out_unaug_%dx%d" % (SCALE, SCALE)
 WRITE_AUG_TO = "out_aug_%dx%d" % (SCALE, SCALE)
 
-def main():
-    """Main function. Normalizes and augments the 10k cats dataset."""
-
-    parser = argparse.ArgumentParser(description="Normalize and augment the 10k cats dataset.")
-    parser.add_argument("--path", required=True, help="Path to your dataset directory, " \
-                                                      "should contain CAT_* folders")
-    args = parser.parse_args()
-
-    subdir_names = ["CAT_00", "CAT_01", "CAT_02", "CAT_03", "CAT_04", "CAT_05", "CAT_06"]
-    subdirs = [os.path.join(args.path, subdir) for subdir in subdir_names]
-
-    dataset = Dataset(subdirs)
-
+def process(dataset):
     for img_idx, image in enumerate(dataset.get_images()):
         print("Image %d" % (img_idx,))
 
@@ -50,7 +39,7 @@ def main():
         #img.draw_face_rectangles()
         #img.show()
 
-        image.remove_rotation()
+        image.remove_rotation()i
 
         # debug code that shows the cat image with face rectangles and keypoints after
         # rotation was removed (so that eyeline is parallel to x-axis)
@@ -89,6 +78,36 @@ def main():
                 face_cp = face.copy()
                 face_cp.resize(new_height=SCALE, new_width=SCALE)
                 misc.imsave(os.path.join(WRITE_AUG_TO, filename), face_cp.image_arr)
+def main():
+    """Main function. Normalizes and augments the 10k cats dataset."""
+
+    parser = argparse.ArgumentParser(description="Normalize and augment the 10k cats dataset.")
+    parser.add_argument("--path", required=True, help="Path to your dataset directory, " \
+                                                      "should contain CAT_* folders")
+    args = parser.parse_args()
+
+    subdir_names = ["CAT_00", "CAT_01", "CAT_02", "CAT_03", "CAT_04", "CAT_05", "CAT_06"]
+    subdirs = [os.path.join(args.path, subdir) for subdir in subdir_names]
+    print (subdirs[0:1])
+
+    pool = Pool()
+    dataset0 = Dataset(subdirs[0:1])
+    dataset1 = Dataset(subdirs[1:2])
+    r0 = pool.apply_async(process,[dataset0])
+    r1 = pool.apply_async(process,[dataset1])
+    r2 = pool.apply_async(process,[dataset2])
+    r3 = pool.apply_async(process,[dataset3])
+    r4 = pool.apply_async(process,[dataset4])
+    r5 = pool.apply_async(process,[dataset5])
+    r6 = pool.apply_async(process,[dataset6])
+    r0.get()
+    r1.get()
+    r2.get()
+    r3.get()
+    r4.get()
+    r5.get()
+    r6.get()
+    
 
 if __name__ == "__main__":
     main()
